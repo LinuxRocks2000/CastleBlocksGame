@@ -1,6 +1,6 @@
 #include <httplib.h>
 
-
+/*
 void respondFile(httplib::Response* res, std::string filename, std::string type = "text/html"){
     std::ifstream file;
     file.open(filename);
@@ -8,11 +8,11 @@ void respondFile(httplib::Response* res, std::string filename, std::string type 
     buffer << file.rdbuf();
     std::string fileData = buffer.str();
     res -> set_content(buffer.str(), type);
-}
+}*/
 
 
 int main(){
-    httplib::Server svr;
+    httplib::Server svr;/*
     svr.Get("/", [](const httplib::Request &, httplib::Response &res) {
         respondFile(&res, "index.html");
     });
@@ -30,7 +30,9 @@ int main(){
     });
     svr.Get("/admin", [](const httplib::Request &, httplib::Response &res) {
         respondFile(&res, "face.txt");
-    });
+    });*/
+
+    svr.set_mount_point("/", "pub");
 
     svr.listen("0.0.0.0", 8080);
     return 0;
