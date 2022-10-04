@@ -2,7 +2,7 @@
 Server in C++, game is web.Code
 
 Should be in the place of the face
-
+```
                               _.--""-._
   .                         ."         ".
  / \    ,^.         /(     Y             |      )\
@@ -41,3 +41,4 @@ Should be in the place of the face
                                              |  \
                                              |lllj
                                              ||||| 
+```
