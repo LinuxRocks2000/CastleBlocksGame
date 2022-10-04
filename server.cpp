@@ -32,7 +32,7 @@ int main(){
         respondFile(&res, "face.txt");
     });*/
 
-    svr.set_mount_point("/", "pub");
+    svr.set_mount_point("/", "./pub");
 
     svr.listen("0.0.0.0", 8080);
     return 0;
