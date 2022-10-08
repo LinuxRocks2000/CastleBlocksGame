@@ -9,11 +9,13 @@
 #include <thread>
 using namespace mysqlx::abi2::r0;
 
-typedef crow::websocket::connection WebsocketConnection;
+typedef crow::websocket::connection& WebsocketConnection;
+
+#define CASTLE_BLOCKS_DB_VERSION "1.0" // Version of the database formatting. HAVE TO UPDATE THIS WITH EVERY DATABASE UPDATE!
 
 
 class Client {
-    
+
 };
 
 
@@ -28,17 +30,22 @@ public:
         session = new Session("localhost", 33060, cnf.get("SQLuser", "null"), cnf.get("SQLpassword"));
         Schema db = (session -> getSchema(cnf.get("SQLdatabase", "testDatabase")));
         database = &db;
+        //Collection collection = db.getCollection("base", true);
+        //DbDoc document = collection.find("VERSION = " CASTLE_BLOCKS_DB_VERSION).execute().fetchOne();
+        //if (!document){
+            //document = collection.add
+        //}
     }
 
-    clientEnter(WebsocketConnection conn){
+    void clientEnter(WebsocketConnection conn){
 
     }
 
-    clientLeave(WebsocketConnection conn, std::string reason){
+    void clientLeave(WebsocketConnection conn, std::string reason){
 
     }
 
-    clientMessage(WebsocketConnection conn, std::string data, bool is_binary){
+    void clientMessage(WebsocketConnection conn, std::string data, bool is_binary){
 
     }
 };

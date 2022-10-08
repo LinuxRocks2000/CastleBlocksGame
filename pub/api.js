@@ -8,6 +8,10 @@ Server adjectives:
  * n: number.
 */
 
+function TODO(reason){
+    console.error("TODO: " + reason);
+}
+
 class APIEventually {
     constructor (requestValue) {
         this.requestValue = requestValue;
@@ -108,6 +112,10 @@ class APIObject {
 class APIClient {
     constructor(url) {
         this.socket = new WebSocket(url);
+        TODO("Implement controllers and get ids and stuff");
+    }
 
+    authenticate(username, password){
+        TODO("Implement authentication");
     }
 }
