@@ -6,6 +6,7 @@
 
 #include <mysqlx/xdevapi.h>
 #include "configreader.hpp"
+#include "StringStream.hpp"
 #include <thread>
 using namespace mysqlx::abi2::r0;
 
@@ -15,7 +16,8 @@ typedef crow::websocket::connection& WebsocketConnection;
 
 
 class Client {
-
+    WebsocketConnection conn;
+    unsigned long id;
 };
 
 
@@ -23,30 +25,39 @@ class Application {
     ConfigReader cnf;
     Session* session;
     Schema* database;
+    unsigned long ticket = 0;
+    std::map <WebsocketConnection, Client*> clients;
 
 public:
     Application(){
         cnf.readFile("config.cnf");
-        session = new Session("localhost", 33060, cnf.get("SQLuser", "null"), cnf.get("SQLpassword"));
-        Schema db = (session -> getSchema(cnf.get("SQLdatabase", "testDatabase")));
-        database = &db;
+        //session = new Session("localhost", 33060, cnf.get("SQLuser", "null"), cnf.get("SQLpassword"));
+        //Schema db = (session -> getSchema(cnf.get("SQLdatabase", "testDatabase")));
+        //database = &db;
         //Collection collection = db.getCollection("base", true);
         //DbDoc document = collection.find("VERSION = " CASTLE_BLOCKS_DB_VERSION).execute().fetchOne();
         //if (!document){
             //document = collection.add
         //}
+
+    }
+
+    void setData(std::string name, std::string value, WebsocketConnection conn){
+        conn.send_text("r" + std::to_string(value.size()) + name + " " + value);
     }
 
     void clientEnter(WebsocketConnection conn){
-
+        ticket ++;
+        Client* cl = new Client();
+        clients[conn] = cl;
     }
 
     void clientLeave(WebsocketConnection conn, std::string reason){
-
+        Client* cl = clients[conn];
     }
 
-    void clientMessage(WebsocketConnection conn, std::string data, bool is_binary){
-
+    void clientMessage(WebsocketConnection conn, std::string message, bool is_binary){
+        StringStream data(message);
     }
 };
 
@@ -58,6 +69,7 @@ void staticServerThread(httplib::Server* srv){
 
 
 int main(){
+    StringStream stream("Hello");
     httplib::Server svr;
     svr.set_mount_point("/", "./pub");
     std::thread serverThread(&staticServerThread, &svr);

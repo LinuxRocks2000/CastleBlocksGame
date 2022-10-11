@@ -1,102 +1,34 @@
 /* By Tyler Clarke.
 Client verbs:
  * g: get data.
-Server verbs:
- * r: return data.
- * e: end the return.
-Server adjectives:
- * n: number.
+ * a: Authenticate.
+Server words:
+ * r: set global data.
+ * c: create an object.
+ * R: set data on an object.
 */
 
 function TODO(reason){
     console.error("TODO: " + reason);
 }
 
-class APIEventually {
-    constructor (requestValue) {
-        this.requestValue = requestValue;
-        this.isUpdating = false;
-        this.values = [];
-    }
-
-    mark () {
-        this.isUpdating = true;
-    }
-
-    done () {
-        if (this.onResolve){
-            this.onResolve(this.values);
-        }
-        this.isUpdating = false;
-    }
-
-    data (verb, data) { /* Verb is for posterity. */
-        this.values.push (data);
-        if (this.onData) {
-            this.onData (data);
-        }
-    }
-}
-
-
-class APIController {
-    constructor (id) {
-        this.resolvers = [];
-        this.currentNoun = undefined;
-    }
-
-    update (verb, noun) { /* Called whenever data is sent to this id */
-        switch (verb) { /* I hate switch case but it works here, sadly. */
-            case "r": // Respond
-                this.resolve (verb, noun);
-                break;
-            case "n":
-                if (this.currentNoun) {
-                    this.currentNoun.data(verb, noun - 0);
-                }
-                break;
-            case "e":
-                this.currentNoun.done();
-                this.resolvers.splice(this.resolvers.indexOf(this.currentNoun), 1);
-                delete this.currentNoun;
-                break;
-        }
-    }
-
-    resolve (verb, noun) { /* Update the resolvers, this is only called on proper responses but keep the verb argument for posterity */
-        if (verb == "r") {
-            this.resolvers.forEach((resolver, i) => {
-                if (resolver.requestValue == noun) {
-                    resolver.mark();
-                    this.currentNoun = resolver;
-                }
-            });
-        }
-    }
-
-    makeRequests () { /* Called by the api client object */
-        var ret = [];
-        this.requests.forEach((item, i) => {
-
-        });
-    }
-
-    getEventually (value) { /* Get a piece of data, returns an APIEventually object that resolves itself "eventually" */
-        var eventual = new APIEventually(value);
-        this.resolvers.push(eventual);
-        return eventual;
-    }
-}
-
 
 class APIObject {
-    constructor (controller) {
-        this.controller = controller;
+    constructor (client) {
+        this.client = client;
         this.values = {};
+        this.diff = {};
     }
 
     setVal (key, value) {
         this.values[key] = value;
+        this.diff[key] = value;
+    }
+
+    getDiff (){
+        var d = this.diff;
+        this.diff = {};
+        return d;
     }
 
     getVal (key, def) {
@@ -109,13 +41,152 @@ class APIObject {
 }
 
 
+class StringStream {
+    constructor(initial){
+        this.buffer = "";
+        this.position = 0;
+        if (initial){
+            this.push(initial);
+        }
+    }
+
+    push(data){
+        this.buffer += data;
+    }
+
+    _read(){
+        if (!this.isEmpty()){
+            this.position ++;
+            return this.buffer[this.position - 1];
+        }
+        return "";
+    }
+
+    read (amount = 1){
+        var ret = "";
+        for (var i = 0; i < amount; i ++){
+            ret += this._read();
+        }
+        return ret;
+    }
+
+    readUntil(character){
+        var ret = "";
+        var chr = this._read();
+        while (chr != character && chr != ""){ // It returns "" when it's out of data, gotta catch 'em all!.
+            ret += chr;
+            chr = this._read();
+        }
+        return ret;
+    }
+
+    peek(){
+        if (!this.isEmpty()){
+            return this.buffer[this.position];
+        }
+        return "";
+    }
+
+    isEmpty(){
+        return this.position >= this.buffer.length;
+    }
+
+    readNumber(){
+        var ret = "";
+        var chr = this._read();
+        var reggie = (/[0-9]/gm);
+        while (chr.match(reggie)){
+            ret += chr;
+            chr = this._read();
+        }
+        this.position --; // It went one character too far, so rewind one.
+        return ret - 0; // It's stupid, yes, but very concise
+    }
+
+    readWord(){
+        return this.readUntil(" ");
+    }
+
+    readWords(amount){
+        var ret = [];
+        for (var i = 0; i < amount; i ++){
+            ret.push(this.readWord());
+        }
+        return ret;
+    }
+}
+
+
 class APIClient {
     constructor(url) {
         this.socket = new WebSocket(url);
-        TODO("Implement controllers and get ids and stuff");
+        this.socket.onmessage = (event) => {
+            this.onMessage(event);
+        };
+        this.requests = {};
+        this.values = {};
+        this.objects = {};
+
+        this.types = {
+            "b": Block
+        };
     }
 
     authenticate(username, password){
-        TODO("Implement authentication");
+        this.socket.send("a" + username + " " + password); // NOT SECURE! We'll use roil keygen for it later.
+    }
+
+    getEventually(value, callback){
+        if (this.requests[value]){
+            this.requests[value].push(callback);
+        }
+        else{
+            this.requests[value] = [callback];
+        }
+    }
+
+    get(value){
+        return this.values[value];
+    }
+
+    update(data){
+        while (!data.isEmpty()){
+            var verb = data.read();
+            if (verb == "r"){
+                var length = data.readNumber();
+                var name = data.readWord();
+                var responseData = data.read(length);
+                this.values[name] = responseData;
+                if (this.requests[name]){
+                    this.requests[name].forEach((item, i) => {
+                        item(responseData);
+                    });
+                    delete this.requests[name];
+                }
+            }
+            else if (verb == "c"){
+                var id = data.readNumber();
+                var type = data.readWord();
+                var obj = new this.types[type]();
+                this.objects[id] = obj;
+            }
+        }
+    }
+
+    onMessage(event){
+        var data = new StringStream(event.data);
+        if (this.ready){
+            this.update(data);
+        }
+        else{
+            this.ready = true;
+            this.id = data.readNumber();
+        }
+    }
+
+    makeRequests(){
+        Object.keys(this.requests).forEach((req, i) => {
+            this.socket.send("g" + req + "e");
+        });
     }
 }
