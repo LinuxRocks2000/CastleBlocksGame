@@ -169,6 +169,9 @@ class APIClient {
                 var type = data.readWord();
                 var obj = new this.types[type]();
                 this.objects[id] = obj;
+                if (this.onCreate){
+                    this.onCreate(obj);
+                }
             }
         }
     }
