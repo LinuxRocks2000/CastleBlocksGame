@@ -1,44 +1,36 @@
-#include <httplib.h>
-#define CROW_ENFORCE_WS_SPEC
-#include "crow_all.h"
-
-#include <iostream>
-
-#include <mysqlx/xdevapi.h>
-#include "configreader.hpp"
-#include "StringStream.hpp"
-#include <thread>
-using namespace mysqlx::abi2::r0;
-
-typedef crow::websocket::connection& WebsocketConnection;
-
+// The castle blocks main server file. The primary compilation target.
 #define CASTLE_BLOCKS_DB_VERSION "1.0" // Version of the database formatting. HAVE TO UPDATE THIS WITH EVERY DATABASE UPDATE!
 
 
-class Client {
+#define CROW_ENFORCE_WS_SPEC
+#include "crow_all.h"
+
+#include <httplib.h>
+
+#include "blocks.h"
+#include "StringStream.hpp"
+#include "Database.hpp"
+
+#include <thread>
+#include <iostream>
+
+#include "typedefs.h"
+
+
+class GameClient {
+public:
     WebsocketConnection conn;
     unsigned long id;
 };
 
 
 class Application {
-    ConfigReader cnf;
-    Session* session;
-    Schema* database;
+    Database database;
     unsigned long ticket = 0;
-    std::map <WebsocketConnection, Client*> clients;
+    std::map <WebsocketConnection, GameClient*> clients;
 
 public:
     Application(){
-        cnf.readFile("config.cnf");
-        //session = new Session("localhost", 33060, cnf.get("SQLuser", "null"), cnf.get("SQLpassword"));
-        //Schema db = (session -> getSchema(cnf.get("SQLdatabase", "testDatabase")));
-        //database = &db;
-        //Collection collection = db.getCollection("base", true);
-        //DbDoc document = collection.find("VERSION = " CASTLE_BLOCKS_DB_VERSION).execute().fetchOne();
-        //if (!document){
-            //document = collection.add
-        //}
 
     }
 
@@ -48,12 +40,12 @@ public:
 
     void clientEnter(WebsocketConnection conn){
         ticket ++;
-        Client* cl = new Client();
+        GameClient* cl = new GameClient();
         clients[conn] = cl;
     }
 
     void clientLeave(WebsocketConnection conn, std::string reason){
-        Client* cl = clients[conn];
+        GameClient* cl = clients[conn];
     }
 
     void clientMessage(WebsocketConnection conn, std::string message, bool is_binary){
@@ -71,7 +63,7 @@ void staticServerThread(httplib::Server* srv){
 int main(){
     StringStream stream("Hello");
     httplib::Server svr;
-    svr.set_mount_point("/", "./pub");
+    svr.set_mount_point("/", "../pub");
     std::thread serverThread(&staticServerThread, &svr);
     serverThread.detach();
 
