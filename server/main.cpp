@@ -16,6 +16,8 @@
 
 #include "typedefs.h"
 
+#include "Game.hpp"
+
 
 class GameClient {
 public:
@@ -28,10 +30,12 @@ class Application {
     Database database;
     unsigned long ticket = 0;
     std::map <WebsocketConnection, GameClient*> clients;
+    Game game;
 
 public:
     Application(){
-
+        // Probably gonna move this eventually
+        game.init();
     }
 
     void setData(std::string name, std::string value, WebsocketConnection conn){

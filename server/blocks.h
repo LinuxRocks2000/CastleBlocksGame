@@ -1,3 +1,4 @@
+#pragma once
 // Defining block types.
 
 enum BlockTypes { // Propagate as necessary
