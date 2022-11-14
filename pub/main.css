@@ -1,3 +1,17 @@
 body{
-    background-color: red;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+#game{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+}
+
+body > img{
+    display: none;
 }

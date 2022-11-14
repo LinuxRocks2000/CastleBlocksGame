@@ -123,12 +123,22 @@ class APIClient {
         this.socket.onmessage = (event) => {
             this.onMessage(event);
         };
+        this.socket.onopen = (event) => {
+            if (this.onReady){
+                this.onReady(event);
+            }
+        };
         this.requests = {};
         this.values = {};
         this.objects = {};
 
         this.types = {
             "b": Block
+        };
+
+        this.metadata = {
+            worldWidth: -1,
+            worldHeight: -1
         };
     }
 
@@ -142,6 +152,7 @@ class APIClient {
         }
         else{
             this.requests[value] = [callback];
+            this.socket.send("g" + req + "e");
         }
     }
 
@@ -173,6 +184,30 @@ class APIClient {
                     this.onCreate(obj);
                 }
             }
+            else if (verb == "b"){
+                var x = data.readNumber();
+                data.read(); // Purge the space character
+                var y = data.readNumber();
+                data.read(); // Purge another space character
+                var type = data.readNumber();
+                if (this.onBrick){
+                    this.onBrick(x, y, type);
+                }
+            }
+            else if (verb == "D"){
+                if (this.onPreloadFinished){
+                    this.onPreloadFinished();
+                }
+            }
+            else if (verb == "m"){
+                this.metadata.worldWidth = data.readNumber();
+                data.read();
+                this.metadata.worldHeight = data.readNumber();
+                data.read();
+                if (this.onMetadataLoaded){
+                    this.onMetadataLoaded(this.metadata);
+                }
+            }
         }
     }
 
@@ -187,9 +222,15 @@ class APIClient {
         }
     }
 
-    makeRequests(){
-        Object.keys(this.requests).forEach((req, i) => {
-            this.socket.send("g" + req + "e");
-        });
+    preloadBricks(x, y, width, height){
+        this.socket.send("b" + x + " " + y + " " + width + " " + height);
+    }
+
+    preloadOne(x, y){
+        this.socket.send("B" + x + " " + y);
+    }
+
+    loadMetadata(){
+        this.socket.send("m");
     }
 }
