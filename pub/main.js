@@ -30,12 +30,11 @@ function loadViewport(){ // Preload the game. I'm not going to bother renaming t
 }
 
 function drawBrick(x, y, type){
-    if (type == -1 || type >= arts.length){
-        return;
-    }
     rX = x * RENDER_BLOCKSIZE;
     rY = y * RENDER_BLOCKSIZE;
-    ctx.drawImage(arts[type], rX, rY);
+    if (type >= 0 && type < arts.length){
+        ctx.drawImage(arts[type], rX, rY);
+    }
     ctx.strokeStyle = "white";
     ctx.lineWidth = 0.5;
     ctx.strokeRect(rX, rY, RENDER_BLOCKSIZE, RENDER_BLOCKSIZE);
@@ -47,18 +46,19 @@ var yv = 0;
 function loop(){
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    for (var x = cX - 1; x < cX + w + 2; x ++){
-        for (var y = cY - 1; y < cY + h + 2; y ++){
+    for (var x = cX - 4; x < cX + w + 8; x ++){
+        for (var y = cY - 4; y < cY + h + 8; y ++){
             x = Math.round(x);
             y = Math.round(y);
             if (x < 0 || y < 0 || x >= worldWidth || y >= worldHeight){
                 continue;
             }
             var item = tileset[x][y];
+            drawBrick(item.x - cX, item.y - cY, item.type);
             if (item.type == -1){
+                item.type = -2; // -2 = requested, waiting
                 client.preloadOne(x, y);
             }
-            drawBrick(item.x - cX, item.y - cY, item.type);
         }
     }
     requestAnimationFrame(loop);
@@ -102,7 +102,7 @@ function loop(){
     yv *= 0.8;
 }
 
-var client = new APIClient("ws://localhost:9002");
+var client = new APIClient("ws://" + location.host.split(":")[0] + ":9002");
 client.onReady = () => {
     client.onBrick = (x, y, type) => {
         var doPush = true;
