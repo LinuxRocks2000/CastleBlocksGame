@@ -1,5 +1,5 @@
 ## A real simple game by Tyler Clarke, Jakson Vermillion, and others.
-Server in C++, game is web.Code
+Server in C++, game is webdev
 
 Should be in the place of the face
 ```
