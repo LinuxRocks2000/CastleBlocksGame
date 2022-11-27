@@ -8,10 +8,14 @@ body{
     position: absolute;
     top: 0px;
     left: 0px;
-    width: 100vw;
-    height: 100vh;
 }
 
 body > img{
     display: none;
+}
+
+#map{
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
 }
