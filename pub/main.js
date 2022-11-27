@@ -14,8 +14,6 @@ var worldWidth = 0;
 var worldHeight = 0;
 
 var canvas = document.getElementById("game");
-var mapCanvas = document.getElementById("map");
-var mapCTX = mapCanvas.getContext("2d");
 function resize(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -50,8 +48,8 @@ var yv = 0;
 function loop(){
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    for (var x = cX - 4; x < cX + w + 8; x ++){
-        for (var y = cY - 4; y < cY + h + 8; y ++){
+    for (var x = cX - w; x < cX + w + w; x ++){
+        for (var y = cY - h; y < cY + h + h; y ++){
             x = Math.round(x);
             y = Math.round(y);
             if (x < 0 || y < 0 || x >= worldWidth || y >= worldHeight){
@@ -63,14 +61,6 @@ function loop(){
                 item.type = -2; // -2 = requested, waiting
                 client.preloadOne(x, y);
             }
-        }
-    }
-    mapCTX.fillStyle = "black";
-    mapCTX.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
-    for (var x = 0; x < worldWidth; x ++){
-        for (var y = 0; y < worldHeight; y ++){
-            var item = tileset[x][y];
-            drawBrick(item.x, item.y, item.type, 4, mapCTX, false);
         }
     }
     requestAnimationFrame(loop);
@@ -146,8 +136,6 @@ client.onMetadataLoaded = (data) => {
         }
         tileset.push(row);
     }
-    mapCanvas.width = worldWidth * 4;
-    mapCanvas.height = worldHeight * 4;
 };
 
 var keysDown = {};

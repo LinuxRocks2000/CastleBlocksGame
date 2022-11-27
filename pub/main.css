@@ -13,9 +13,3 @@ body{
 body > img{
     display: none;
 }
-
-#map{
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-}
