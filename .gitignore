@@ -3,3 +3,4 @@ server/*.pem
 server/*.key
 server/castleblocks
 server/*.csr
+server/*.cnf

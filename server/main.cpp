@@ -13,6 +13,7 @@
 #include "blocks.h"
 #include "Objects.hpp"
 #include "StringStream.hpp"
+#include "configreader.hpp"
 
 #include <thread>
 #include <iostream>
@@ -52,12 +53,11 @@ public:
 
 
 Brick tileset[WORLD_WIDTH][WORLD_HEIGHT]; // Hush. C++ weirdery.
-
+ConfigReader config;
 
 class Application {
     std::map <WebsocketConnectionPointer, GameClient*> clients;
     unsigned long long rID = 0; // unsigned longs ftw
-
 public:
     Application(){
         // Probably gonna move this eventually
@@ -174,7 +174,8 @@ public:
             return false;
         }
         else if (tileset[x][y].owner && tileset[x][y].owner != &client -> meinBlock){ // If it has an owner that is not the client, return false
-            return false;
+            std::cout << "Pulling up them skreets" << std::endl;
+	    return false;
         }
         return true;
     }
@@ -182,9 +183,10 @@ public:
 
 
 int main(){
+    config.readFile("server.cnf");
     Application app;
     crow::SimpleApp webserver;
-    webserver.ssl_file("castleblocks.crt", "castleblocks.key"); // Generate your own. Don't want to upload them to github.
+    webserver.ssl_file(config.get("certfile", "castleblocks.crt"), config.get("keyfile", "castleblocks.key")); // Generate your own. Don't want to upload them to github.
     CROW_ROUTE(webserver, "/static/<path>")([](const crow::request& req, crow::response& res, std::string path){
 	res.set_static_file_info("pub/" + path);
 	res.end();

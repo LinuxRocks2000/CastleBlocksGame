@@ -35,6 +35,7 @@ public:
                 }
                 value += chr;
             }
+            std::cout << name << ": " << value << std::endl;
             pairs[name] = value;
             if (callbacks.find(name) != callbacks.end()) {
                 callbacks[name](value);
@@ -45,6 +46,7 @@ public:
     }
 
     std::string get(std::string key, std::string df = ""){
+	std::cout << pairs[key] << std::endl;
         if (pairs.find(key) == pairs.end()){
             return df;
         }

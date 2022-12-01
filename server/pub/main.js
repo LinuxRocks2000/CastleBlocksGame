@@ -32,6 +32,9 @@ canvas.addEventListener("click", (data) => {
     if (client.isPlaceCastleblock){
         client.placeCastleblock(mousePos.gridX, mousePos.gridY);
     }
+    else {
+	client.placeBlock(4, mousePos.gridX, mousePos.gridY);
+    }
 });
 function resize(){
     canvas.width = window.innerWidth;
