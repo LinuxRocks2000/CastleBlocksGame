@@ -1,0 +1,15 @@
+body{
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+#game{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+body > img{
+    display: none;
+}

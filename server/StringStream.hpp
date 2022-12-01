@@ -138,7 +138,7 @@ public:
     long readNumber(){
         std::string buf;
         char digit = peek();
-        while (digit >= '0' && digit <= '9' || digit == '-'){
+        while ((digit >= '0' && digit <= '9') || digit == '-'){
             read();
             buf += digit;
             digit = peek();

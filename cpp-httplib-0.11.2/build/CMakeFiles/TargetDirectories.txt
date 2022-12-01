@@ -1,6 +1,0 @@
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/edit_cache.dir
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/rebuild_cache.dir
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/list_install_components.dir
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/install.dir
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/install/local.dir
-/home/awesome/desk/programs/games/unfinished/castle_blocks/cpp-httplib-0.11.2/build/CMakeFiles/install/strip.dir

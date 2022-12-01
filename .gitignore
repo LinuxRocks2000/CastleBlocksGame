@@ -2,4 +2,4 @@ config.cnf
 server/*.pem
 server/*.key
 server/a.out
-
+server/*.csr

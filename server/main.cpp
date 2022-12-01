@@ -2,13 +2,14 @@
 #define CASTLE_BLOCKS_DB_VERSION "1.0" // Version of the database formatting. HAVE TO UPDATE THIS WITH EVERY DATABASE UPDATE!
 #define WORLD_WIDTH  500
 #define WORLD_HEIGHT 500
+#include <unistd.h>
 
 
+//#define CROW_STATIC_DIRECTORY "/home/boujie/CastleBlocksGame/pub/"
+//#define CROW_STATIC_ENDPOINT "/home/boujie/CastleBlocksGame/pub/<path>"
+#define CROW_DISABLE_STATIC_DIR
 #define CROW_ENFORCE_WS_SPEC
-#include "crow_all.h"
-
-#include <httplib.h>
-
+#include <crow.h>
 #include "blocks.h"
 #include "Objects.hpp"
 #include "StringStream.hpp"
@@ -180,22 +181,19 @@ public:
 };
 
 
-void staticServerThread(httplib::Server* srv){
-    std::cout << "Statically serving HTTP on 0.0.0.0:8080" << std::endl;
-    srv -> listen("0.0.0.0", 8080);
-}
-
-
 int main(){
-    httplib::Server svr;
-    svr.set_mount_point("/", "../pub");
-    std::thread serverThread(&staticServerThread, &svr);
-    serverThread.detach();
-
     Application app;
-
-    crow::SimpleApp websockets;
-    CROW_ROUTE(websockets, "/")
+    crow::SimpleApp webserver;
+    webserver.ssl_file("castleblocks.crt", "castleblocks.key"); // Generate your own. Don't want to upload them to github.
+    CROW_ROUTE(webserver, "/static/<path>")([](const crow::request& req, crow::response& res, std::string path){
+	res.set_static_file_info("pub/" + path);
+	res.end();
+    });
+    CROW_ROUTE(webserver, "/")([](const crow::request& req, crow::response& res){
+	res.set_static_file_info("pub/index.html");
+	res.end();
+    });
+    CROW_ROUTE(webserver, "/game")
     .websocket()
     .onopen([&](WebsocketConnection conn) {
         app.clientEnter(&conn);
@@ -204,6 +202,6 @@ int main(){
     }).onmessage([&](WebsocketConnection conn, std::string data, bool is_binary) {
         app.clientMessage(&conn, data, is_binary);
     });
-    websockets.port(9002).multithreaded().run();
+    webserver.port(443).multithreaded().run();
     return 0;
 }
