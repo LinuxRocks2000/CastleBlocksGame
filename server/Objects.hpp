@@ -15,6 +15,7 @@ struct CastleBlock{ // Controls most of a client.
     long money = 0;
     Brick* physical = 0; // A physical brick in the Mass Brick Array. If 0, you can ONLY place a castle block.
     long long id = 0;
+    ~CastleBlock();
 };
 
 
@@ -25,3 +26,8 @@ struct Brick{
     CastleBlock* owner = 0; // If the owner is 0, it can be mutated by *any* Castle Block
     float durability = 100; // Might restructure this later; for now, max is ALWAYS 100 and different types respond differently to damage
 };
+
+
+CastleBlock::~CastleBlock(){
+    physical -> type = 0; // this is bad. fix later when i'm not in an sshed nano.
+}

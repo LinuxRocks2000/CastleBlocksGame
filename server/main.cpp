@@ -27,8 +27,12 @@ public:
     WebsocketConnectionPointer conn;
     unsigned long id;
     CastleBlock meinBlock;
-
-    ~GameClient() = default;
+    std::vector<Brick*> blocks;
+    ~GameClient(){
+	for (Brick* brick : blocks){
+	    brick -> owner = 0; // Free the bricks
+	}
+    }
 
     void onClientMessage(char verb, StringStream data){
         if (verb == 's'){ // Requesting a current client state. Should always be sent after metadata is loaded.
@@ -46,7 +50,6 @@ public:
         }
         std::string message = "s";
         message += state;
-        std::cout << (long)state << std::endl;
         conn -> send_binary(message);
     }
 };
@@ -96,7 +99,6 @@ public:
         StringStream data(message);
         char verb = data.read();
         if (verb == 'b'){
-            std::cout << data.buffer << std::endl;
             long long x = data.readNumber();
             data.read(); // Purge a space
             long long y = data.readNumber();
@@ -148,6 +150,7 @@ public:
                 if (type == BlockTypes::CASTLEBLOCK){
                     cli -> meinBlock.physical = &(tileset[x][y]);
                 }
+            	cli -> blocks.push_back(&tileset[x][y]);
             }
             cli -> updateStatus();
         }
@@ -174,9 +177,11 @@ public:
             return false;
         }
         else if (tileset[x][y].owner && tileset[x][y].owner != &client -> meinBlock){ // If it has an owner that is not the client, return false
-            std::cout << "Pulling up them skreets" << std::endl;
-	    return false;
+      	    return false;
         }
+	else if (tileset[x][y].type == BlockTypes::CASTLEBLOCK){ // Eventually add a case where you can remove castle blocks. Or not. I don't care.
+	    return false;
+	}
         return true;
     }
 };
