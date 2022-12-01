@@ -46,7 +46,6 @@ public:
     }
 
     std::string get(std::string key, std::string df = ""){
-	std::cout << pairs[key] << std::endl;
         if (pairs.find(key) == pairs.end()){
             return df;
         }
