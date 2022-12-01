@@ -1,2 +1,5 @@
 config.cnf
-mysql-connector-*
+server/*.pem
+server/*.key
+server/a.out
+
