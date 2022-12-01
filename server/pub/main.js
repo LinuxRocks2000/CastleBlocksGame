@@ -8,6 +8,8 @@ var arts = [
     document.getElementById("basic_shrub")
 ];
 
+var cursor = 2;
+
 var RENDER_BLOCKSIZE = 50;
 
 var cX = 0;
@@ -36,7 +38,7 @@ canvas.addEventListener("click", (data) => {
         client.placeCastleblock(mousePos.gridX, mousePos.gridY);
     }
     else {
-        client.placeBlock(5, mousePos.gridX, mousePos.gridY);
+        client.placeBlock(cursor, mousePos.gridX, mousePos.gridY);
     }
 });
 function resize(){
@@ -58,7 +60,9 @@ function drawBrick(x, y, type, blockSize = RENDER_BLOCKSIZE, context = ctx, line
     rX = x * blockSize;
     rY = y * blockSize;
     if (type >= 0 && type < arts.length){
-        context.drawImage(arts[type], rX, rY);
+        if (arts[type]){
+            context.drawImage(arts[type], rX, rY);
+        }
     }
     if (lines){
         context.strokeStyle = "white";
@@ -83,6 +87,12 @@ function loop(){
     mousePos.gameY = mousePos.rawY + cY * RENDER_BLOCKSIZE;
     mousePos.gridX = Math.floor(mousePos.gameX / RENDER_BLOCKSIZE);
     mousePos.gridY = Math.floor(mousePos.gameY / RENDER_BLOCKSIZE);
+    if (client.isPlaceCastleblock){
+        cursor = 2;
+    }
+    else if (cursor == 2){
+        cursor = 0;
+    }
     if (mousePos.gridX >= worldWidth){
         mousePos.gridX = worldWidth - 1;
     }
@@ -115,6 +125,11 @@ function loop(){
     ctx.strokeStyle = "white";
     ctx.lineWidth = 3;
     ctx.strokeRect((mousePos.gridX - cX) * RENDER_BLOCKSIZE, (mousePos.gridY - cY) * RENDER_BLOCKSIZE, RENDER_BLOCKSIZE, RENDER_BLOCKSIZE);
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = "black";
+    ctx.fillRect((mousePos.gridX - cX) * RENDER_BLOCKSIZE, (mousePos.gridY - cY) * RENDER_BLOCKSIZE, RENDER_BLOCKSIZE, RENDER_BLOCKSIZE);
+    drawBrick(mousePos.gridX - cX, mousePos.gridY - cY, cursor);
+    ctx.globalAlpha = 1;
     requestAnimationFrame(loop);
     if (keysDown["ArrowUp"]){
         yv -= 7;
@@ -214,6 +229,24 @@ var keysDown = {};
 
 window.addEventListener("keydown", (event) => {
     keysDown[event.key] = true;
+    if (event.key == "q"){
+        cursor --;
+        if (cursor == 2){
+            cursor --;
+        }
+    }
+    if (event.key == "e"){
+        cursor ++;
+        if (cursor == 2){
+            cursor ++;
+        }
+    }
+    if (cursor < 0){
+        cursor = arts.length - 1;
+    }
+    if (cursor >= arts.length){
+        cursor = 0;
+    }
 });
 
 window.addEventListener("keyup", (event) => {

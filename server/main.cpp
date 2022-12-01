@@ -176,12 +176,12 @@ public:
         if (type == BlockTypes::CASTLEBLOCK && client -> meinBlock.physical){ // The client's castle block has an owned physical representation AND you're placing a castle block
             return false;
         }
-        else if (tileset[x][y].owner && tileset[x][y].owner != &client -> meinBlock){ // If it has an owner that is not the client, return false
+        else if (tileset[x][y].owner && (tileset[x][y].owner != &client -> meinBlock)) { // If it has an owner that is not the client, return false
       	    return false;
         }
-	else if (tileset[x][y].type == BlockTypes::CASTLEBLOCK){ // Eventually add a case where you can remove castle blocks. Or not. I don't care.
-	    return false;
-	}
+        else if (tileset[x][y].type == BlockTypes::CASTLEBLOCK){ // Eventually add a case where you can remove castle blocks. Or not. I don't care.
+            return false;
+        }
         return true;
     }
 };
