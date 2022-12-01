@@ -2,7 +2,10 @@ var tileset = [];
 var arts = [
     document.getElementById("basic_dirt"),
     document.getElementById("basic_sand"),
-    document.getElementById("castleblock")
+    document.getElementById("castleblock"),
+    undefined,
+    undefined,
+    document.getElementById("basic_shrub")
 ];
 
 var RENDER_BLOCKSIZE = 50;
@@ -33,7 +36,7 @@ canvas.addEventListener("click", (data) => {
         client.placeCastleblock(mousePos.gridX, mousePos.gridY);
     }
     else {
-	client.placeBlock(4, mousePos.gridX, mousePos.gridY);
+        client.placeBlock(5, mousePos.gridX, mousePos.gridY);
     }
 });
 function resize(){
