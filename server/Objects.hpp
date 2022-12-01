@@ -29,5 +29,5 @@ struct Brick{
 
 
 CastleBlock::~CastleBlock(){
-    physical -> type = 0; // this is bad. fix later when i'm not in an sshed nano.
+    app.setBlock(physical -> x, physical -> y, 0); // this is bad. fix later when i'm not in an sshed nano.
 }

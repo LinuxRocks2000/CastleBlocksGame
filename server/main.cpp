@@ -186,10 +186,10 @@ public:
     }
 };
 
+Application app;
 
 int main(){
     config.readFile("server.cnf");
-    Application app;
     crow::SimpleApp webserver;
     webserver.ssl_file(config.get("certfile", "castleblocks.crt"), config.get("keyfile", "castleblocks.key")); // Generate your own. Don't want to upload them to github.
     CROW_ROUTE(webserver, "/static/<path>")([](const crow::request& req, crow::response& res, std::string path){
