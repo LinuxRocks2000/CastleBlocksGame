@@ -140,6 +140,8 @@ class APIClient {
             worldWidth: -1,
             worldHeight: -1
         };
+
+        this.isPlaceCastleblock = undefined; // No response from server
     }
 
     authenticate(username, password){
@@ -208,17 +210,35 @@ class APIClient {
                     this.onMetadataLoaded(this.metadata);
                 }
             }
+            else if (verb == "s"){
+                var state = data.read().charCodeAt(0);
+                this.isPlaceCastleblock = !(state & 1);
+                if (this.onStateLoaded){
+                    this.onStateLoaded();
+                }
+            }
         }
     }
 
     onMessage(event){
-        var data = new StringStream(event.data);
-        if (this.ready){
-            this.update(data);
+        var process = (data) => {
+            if (this.ready){
+                this.update(data);
+            }
+            else{
+                this.ready = true;
+                this.id = data.readNumber();
+            }
+        };
+        if (typeof(event.data) == "string"){
+            process(new StringStream(event.data));
         }
         else{
-            this.ready = true;
-            this.id = data.readNumber();
+            var reader = new FileReader();
+            reader.addEventListener("load", (d) => {
+                process(new StringStream(d.srcElement.result));
+            });
+            reader.readAsBinaryString(event.data);
         }
     }
 
@@ -232,5 +252,17 @@ class APIClient {
 
     loadMetadata(){
         this.socket.send("m");
+    }
+
+    loadState(){
+        this.socket.send("s");
+    }
+
+    placeBlock(b, x, y){
+        this.socket.send("p" + b + " " + x + " " + y); // Bitbang later
+    }
+
+    placeCastleblock(x, y){
+        this.placeBlock(2, x, y);
     }
 }

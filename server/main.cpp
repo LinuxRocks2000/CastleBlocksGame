@@ -12,7 +12,6 @@
 #include "blocks.h"
 #include "Objects.hpp"
 #include "StringStream.hpp"
-#include "Database.hpp"
 
 #include <thread>
 #include <iostream>
@@ -25,8 +24,28 @@ class GameClient {
 public:
     WebsocketConnectionPointer conn;
     unsigned long id;
-    GameClient(){
+    CastleBlock meinBlock;
 
+    ~GameClient() = default;
+
+    void onClientMessage(char verb, StringStream data){
+        if (verb == 's'){ // Requesting a current client state. Should always be sent after metadata is loaded.
+            updateStatus();
+        }
+    }
+
+    void updateStatus(){
+        char state = 0; // Don't want to send string termination characters
+        /* Bits and what they mean:
+            bit 0 (base 10 =1): Whether the castle block has been placed or not (if it has, expect some bytes of block metadata)
+        */
+        if (meinBlock.physical != 0){
+            state = state || 1;
+        }
+        std::string message = "s";
+        message += state;
+        std::cout << (long)state << std::endl;
+        conn -> send_binary(message);
     }
 };
 
@@ -35,10 +54,8 @@ Brick tileset[WORLD_WIDTH][WORLD_HEIGHT]; // Hush. C++ weirdery.
 
 
 class Application {
-    Database database;
-    unsigned long ticket = 0;
     std::map <WebsocketConnectionPointer, GameClient*> clients;
-    long long rID = 0;
+    unsigned long long rID = 0; // unsigned longs ftw
 
 public:
     Application(){
@@ -58,8 +75,7 @@ public:
     }
 
     void clientEnter(WebsocketConnectionPointer conn){
-        ticket ++;
-        GameClient* cl = new GameClient();
+        GameClient* cl = new GameClient {conn, rID};
         clients[conn] = cl;
         conn -> send_text(std::to_string(rID));
         rID ++;
@@ -67,6 +83,8 @@ public:
 
     void clientLeave(WebsocketConnectionPointer conn, std::string reason){
         GameClient* cl = clients[conn];
+        clients.erase(conn);
+        delete cl;
     }
 
     void sendBrick(WebsocketConnectionPointer conn, Brick brick){
@@ -116,6 +134,48 @@ public:
         else if (verb == 'm'){
             conn -> send_text("m" + std::to_string(WORLD_WIDTH) + " " + std::to_string(WORLD_HEIGHT)); // add more params later
         }
+        else if (verb == 'p'){ // All "place" does is change type.
+            uint8_t type = data.readNumber();
+            data.read();
+            long long x = data.readNumber();
+            data.read();
+            long long y = data.readNumber();
+            GameClient* cli = clients[conn];
+            if (isPlaceable(x, y, type, cli)){
+                tileset[x][y].owner = &cli -> meinBlock; // Set type to whatever you're placing and set ownership
+                setBlock(x, y, type); // Other routines
+                if (type == BlockTypes::CASTLEBLOCK){
+                    cli -> meinBlock.physical = &(tileset[x][y]);
+                }
+            }
+            cli -> updateStatus();
+        }
+        else { /* Server commands over. Client-specific block time. */
+            clients[conn] -> onClientMessage(verb, data);
+        }
+    }
+
+    void setBlock(long long x, long long y, uint8_t type){ // Notably we might eventually have more than 256 types. We'll cross that bridge.
+        // Leave room for other routines here
+        tileset[x][y].type = type;
+        tileset[x][y].durability = 100;
+        updateBrick(x, y);
+    }
+
+    void updateBrick(long long x, long long y){
+        for (auto const& it : clients){
+            sendBrick(&(*it.second -> conn), tileset[x][y]);
+        }
+    }
+
+    bool isPlaceable(long long x, long long y, long long type, GameClient* client){
+        if (type == BlockTypes::CASTLEBLOCK && client -> meinBlock.physical){ // The client's castle block has an owned physical representation AND you're placing a castle block
+            return false;
+        }
+        else if (tileset[x][y].owner && tileset[x][y].owner != &client -> meinBlock){ // If it has an owner that is not the client, return false
+            return false;
+        }
+        return true;
     }
 };
 

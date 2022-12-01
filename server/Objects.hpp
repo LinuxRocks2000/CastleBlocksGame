@@ -13,7 +13,8 @@ struct Brick;
 
 struct CastleBlock{ // Controls most of a client.
     long money = 0;
-    Brick* physical; // A physical brick in the Mass Brick Array
+    Brick* physical = 0; // A physical brick in the Mass Brick Array. If 0, you can ONLY place a castle block.
+    long long id = 0;
 };
 
 
@@ -22,4 +23,5 @@ struct Brick{
     long long x; // Guaranteed to be 64 bits IIRC
     long long y; // ditto.
     CastleBlock* owner = 0; // If the owner is 0, it can be mutated by *any* Castle Block
+    float durability = 100; // Might restructure this later; for now, max is ALWAYS 100 and different types respond differently to damage
 };

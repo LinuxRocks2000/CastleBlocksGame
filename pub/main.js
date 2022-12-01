@@ -1,12 +1,22 @@
 var tileset = [];
 var arts = [
     document.getElementById("basic_dirt"),
-    document.getElementById("basic_sand")
+    document.getElementById("basic_sand"),
+    document.getElementById("castleblock")
 ];
+
 var RENDER_BLOCKSIZE = 50;
 
 var cX = 0;
 var cY = 0;
+var mousePos = {
+    rawX: 0,
+    rawY: 0,
+    gameX: 0,
+    gameY: 0,
+    gridX: 0,
+    gridY: 0
+};
 var w = 0;
 var h = 0;
 
@@ -14,6 +24,15 @@ var worldWidth = 0;
 var worldHeight = 0;
 
 var canvas = document.getElementById("game");
+canvas.addEventListener("mousemove", (data) => {
+    mousePos.rawX = data.clientX;
+    mousePos.rawY = data.clientY;
+});
+canvas.addEventListener("click", (data) => {
+    if (client.isPlaceCastleblock){
+        client.placeCastleblock(mousePos.gridX, mousePos.gridY);
+    }
+});
 function resize(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -45,11 +64,35 @@ function drawBrick(x, y, type, blockSize = RENDER_BLOCKSIZE, context = ctx, line
 var xv = 0;
 var yv = 0;
 
+function placeCastleblockInterface(){
+
+}
+
+function mainInterface(){
+
+}
+
 function loop(){
+    mousePos.gameX = mousePos.rawX + cX * RENDER_BLOCKSIZE;
+    mousePos.gameY = mousePos.rawY + cY * RENDER_BLOCKSIZE;
+    mousePos.gridX = Math.floor(mousePos.gameX / RENDER_BLOCKSIZE);
+    mousePos.gridY = Math.floor(mousePos.gameY / RENDER_BLOCKSIZE);
+    if (mousePos.gridX >= worldWidth){
+        mousePos.gridX = worldWidth - 1;
+    }
+    else if (mousePos.gridX < 0){
+        mousePos.gridX = 0;
+    }
+    if (mousePos.gridY >= worldHeight){
+        mousePos.gridY = worldHeight - 1;
+    }
+    else if (mousePos.gridY < 0){
+        mousePos.gridY = 0;
+    }
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    for (var x = cX - w; x < cX + w + w; x ++){
-        for (var y = cY - h; y < cY + h + h; y ++){
+    for (var x = cX - w/2; x < cX + w + w/2; x ++){
+        for (var y = cY - h/2; y < cY + h + h/2; y ++){
             x = Math.round(x);
             y = Math.round(y);
             if (x < 0 || y < 0 || x >= worldWidth || y >= worldHeight){
@@ -63,6 +106,9 @@ function loop(){
             }
         }
     }
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 3;
+    ctx.strokeRect((mousePos.gridX - cX) * RENDER_BLOCKSIZE, (mousePos.gridY - cY) * RENDER_BLOCKSIZE, RENDER_BLOCKSIZE, RENDER_BLOCKSIZE);
     requestAnimationFrame(loop);
     if (keysDown["ArrowUp"]){
         yv -= 7;
@@ -102,6 +148,21 @@ function loop(){
     }
     xv *= 0.8;
     yv *= 0.8;
+
+    if (client.isPlaceCastleblock == true){
+        // Add more complex rules later
+        ctx.fillStyle = "green";
+        ctx.font = "bold 48px sans-serif";
+        ctx.textAlign = "center";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "black";
+        ctx.strokeText("Place your castle block:", window.innerWidth/2, 40);
+        ctx.fillText("Place your castle block:", window.innerWidth/2, 40);
+        placeCastleblockInterface(); // We'll decide on a final structure for the client later; for now, keep it to FOP
+    }
+    else if (client.isPlaceCastleblock == false){ // Catch undefined, I think
+        mainInterface();
+    }
 }
 
 var client = new APIClient("ws://" + location.host.split(":")[0] + ":9002");
@@ -136,6 +197,11 @@ client.onMetadataLoaded = (data) => {
         }
         tileset.push(row);
     }
+    client.loadState();
+};
+
+client.onStateLoaded = (data) => {
+
 };
 
 var keysDown = {};
