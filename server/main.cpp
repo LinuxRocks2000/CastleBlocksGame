@@ -188,6 +188,14 @@ public:
 
 Application app;
 
+
+CastleBlock::~CastleBlock(){ // Look, just don't even ask.
+// This code is probably going to need to be, if not fully rewritten, at least restructured.
+// Well actually I know for a fact there's a better way to go about this and will implement that, but I have to go soon and *really* want to test this.
+    app.setBlock(physical -> x, physical -> y, 0); // this is bad. fix later when i'm not in an sshed nano.
+}
+
+
 int main(){
     config.readFile("server.cnf");
     crow::SimpleApp webserver;
