@@ -1,7 +1,7 @@
 // The castle blocks main server file. The primary compilation target.
 #define CASTLE_BLOCKS_DB_VERSION "1.0" // Version of the database formatting. HAVE TO UPDATE THIS WITH EVERY DATABASE UPDATE!
-#define WORLD_WIDTH  500
-#define WORLD_HEIGHT 500
+#define WORLD_WIDTH  1000
+#define WORLD_HEIGHT 1000
 #include <unistd.h>
 
 

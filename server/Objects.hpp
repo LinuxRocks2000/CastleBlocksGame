@@ -11,11 +11,21 @@
 struct Brick;
 
 
-struct CastleBlock{ // Controls most of a client.
+struct SpecialBlock{ // Polymorphic base class
+    // Paradigm: Special bricks obtain a spot in the tileset and are just swaous from there.
+    virtual void loop() = 0;
+};
+
+
+struct CastleBlock : public SpecialBlock{ // Controls most of a client.
     long money = 0;
     Brick* physical = 0; // A physical brick in the Mass Brick Array. If 0, you can ONLY place a castle block.
     long long id = 0;
     ~CastleBlock();
+
+    void loop(){
+
+    }
 };
 
 
