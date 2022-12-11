@@ -20,7 +20,7 @@
 
 #include "typedefs.h"
 #include "worldgen.hpp"
-
+#include "templater.hpp"
 
 class GameClient {
 public:
@@ -201,15 +201,25 @@ CastleBlock::~CastleBlock(){ // Look, just don't even ask.
 int main(){
     config.readFile("server.cnf");
     crow::SimpleApp webserver;
-    std::cout << config.get("certfile", "castleblocks.crt") << std::endl;
-    webserver.ssl_file(config.get("certfile", "castleblocks.crt"), config.get("keyfile", "castleblocks.key")); // Generate your own. Don't want to upload them to github.
+    std::string prefix = config.get("prefix", "");
+    if (config.get("https", "true") == "true"){
+        webserver.ssl_file(config.get("certfile", "castleblocks.crt"), config.get("keyfile", "castleblocks.key")); // Generate your own. Don't want to upload them to github.
+    }
     CROW_ROUTE(webserver, "/static/<path>")([](const crow::request& req, crow::response& res, std::string path){
-	res.set_static_file_info("pub/" + path);
-	res.end();
+        res.set_static_file_info("pub/" + path);
+        res.end();
     });
-    CROW_ROUTE(webserver, "/")([](const crow::request& req, crow::response& res){
+    CROW_ROUTE(webserver, "/")([&](const crow::request& req, crow::response& res){
 	res.set_static_file_info("pub/index.html");
 	res.end();
+        /*std::map<std::string, std::string> ctx;
+        ctx["prefix"] = prefix;
+        res.set_static_file_info("/home/boujie/CastleBlocksGame/server/" + genTemplate("pub/index.html", ctx));
+        res.end();*/
+    });
+    CROW_ROUTE(webserver, "/api/get/prefix")([&](const crow::request& req, crow::response& res){
+        res.write(prefix);
+        res.end();
     });
     CROW_ROUTE(webserver, "/game")
     .websocket()
@@ -220,6 +230,6 @@ int main(){
     }).onmessage([&](WebsocketConnection conn, std::string data, bool is_binary) {
         app.clientMessage(&conn, data, is_binary);
     });
-    webserver.port(443).multithreaded().run();
+    webserver.port(std::stoi(config.get("port", "443"))).multithreaded().run();
     return 0;
 }

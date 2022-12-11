@@ -186,75 +186,78 @@ function loop(){
     }
 }
 
-var client = new APIClient("wss://" + location.host.split(":")[0] + "/game");
-client.onReady = () => {
-    client.onBrick = (x, y, type) => {
-        var doPush = true;
-        tileset.forEach((item, i) => {
-            if (item.x == x && item.y == y && item.type == type){
-                doPush = false;
-            }
-        });
-        if (doPush){
-            tileset[x][y] = {x: x, y: y, type: type};
-        }
-    };
-
-    loadViewport();
-};
-
-client.onPreloadFinished = () => {
-    console.log("Preloading finished");
-    requestAnimationFrame(loop);
-};
-
-client.onMetadataLoaded = (data) => {
-    worldWidth = data.worldWidth;
-    worldHeight = data.worldHeight;
-    for (var x = 0; x < worldWidth; x ++){
-        var row = [];
-        for (var y = 0; y < worldHeight; y ++){
-            row.push({x: -1, y: -1, type: -1});
-        }
-        tileset.push(row);
-    }
-    client.loadState();
-};
-
-client.onStateLoaded = (data) => {
-
-};
-
+var client;
 var keysDown = {};
 
-window.addEventListener("keydown", (event) => {
-    keysDown[event.key] = true;
-    if (event.key == "q"){
-        cursor --;
-        if (cursor == 2){
-            cursor --;
-        }
-    }
-    if (event.key == "e"){
-        cursor ++;
-        if (cursor == 2){
-            cursor ++;
-        }
-    }
-    if (cursor < 0){
-        cursor = arts.length - 1;
-    }
-    if (cursor >= arts.length){
-        cursor = 0;
-    }
-});
+fetch("api/get/prefix").then(response => response.text()).then(prefix => {
+	client = new APIClient("ws" + (location.protocol == "https:" ? "s" : "") + "://" + location.host.split(":")[0] + "/" + prefix + "/game");
+	client.onReady = () => {
+	    client.onBrick = (x, y, type) => {
+	        var doPush = true;
+	        tileset.forEach((item, i) => {
+	            if (item.x == x && item.y == y && item.type == type){
+	                doPush = false;
+	            }
+	        });
+	        if (doPush){
+	            tileset[x][y] = {x: x, y: y, type: type};
+	        }
+	    };
 
-window.addEventListener("keyup", (event) => {
-    keysDown[event.key] = false;
-});
+	    loadViewport();
+	};
 
-canvas.addEventListener("wheel", (event) => {
-    xv += event.deltaX * 0.2;
-    yv += event.deltaY * 0.2;
-    event.preventDefault();
+	client.onPreloadFinished = () => {
+	    console.log("Preloading finished");
+	    requestAnimationFrame(loop);
+	};
+
+	client.onMetadataLoaded = (data) => {
+	    worldWidth = data.worldWidth;
+	    worldHeight = data.worldHeight;
+	    for (var x = 0; x < worldWidth; x ++){
+	        var row = [];
+	        for (var y = 0; y < worldHeight; y ++){
+	            row.push({x: -1, y: -1, type: -1});
+	        }
+	        tileset.push(row);
+	    }
+	    client.loadState();
+	};
+
+	client.onStateLoaded = (data) => {
+
+	};
+
+	window.addEventListener("keydown", (event) => {
+	    keysDown[event.key] = true;
+	    if (event.key == "q"){
+	        cursor --;
+	        if (cursor == 2){
+	            cursor --;
+	        }
+	    }
+	    if (event.key == "e"){
+	        cursor ++;
+	        if (cursor == 2){
+	            cursor ++;
+	        }
+	    }
+	    if (cursor < 0){
+	        cursor = arts.length - 1;
+	    }
+	    if (cursor >= arts.length){
+	        cursor = 0;
+	    }
+	});
+
+	window.addEventListener("keyup", (event) => {
+	    keysDown[event.key] = false;
+	});
+
+	canvas.addEventListener("wheel", (event) => {
+	    xv += event.deltaX * 0.2;
+	    yv += event.deltaY * 0.2;
+	    event.preventDefault();
+	});
 });
